@@ -7,6 +7,8 @@ export interface TetrisLevelProps {
 export default class TetrisLevel extends React.PureComponent<TetrisLevelProps> {
 
     public render(): React.ReactNode {
-        return null;
+
+        const { level } = this.props;
+        return `Level: ${level}`;
     }
 }

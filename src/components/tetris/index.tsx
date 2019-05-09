@@ -5,7 +5,6 @@ import { Tetrominos, FIELD_HEIGHT, FIELD_WIDTH, DEFAULT_BLOCK_SIZE, GAME_SPEED, 
 import TetrisScore from './components/score';
 import TetrisLines from './components/lines';
 import TetrisLevel from './components/level';
-import TetrisNext from './components/next';
 import './styles.css';
 import TetrisBox from './components/box';
 
@@ -53,6 +52,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         this.getFieldWithActiveTetromino = this.getFieldWithActiveTetromino.bind(this);
         this.removeLines = this.removeLines.bind(this);
         this.calculateScore = this.calculateScore.bind(this);
+        this.getCurrentLevel = this.getCurrentLevel.bind(this);
         this.getActiveTetrominoShape = this.getActiveTetrominoShape.bind(this);
         this.getNextTetrominoShape = this.getNextTetrominoShape.bind(this);
         this.getRandomTetromino = this.getRandomTetromino.bind(this);
@@ -146,21 +146,24 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         );
     }
 
-    private removeLines(field: TetrominoShape): { field: TetrominoShape, lines: number, score: number } {
+    private removeLines(field: TetrominoShape): { field: TetrominoShape, lines: number, level: number, score: number } {
 
         const emptyField: TetrominoShape = this.generateField();
         const fieldLines: TetrominoShape = field.filter((line: any[]): boolean => !line.every((cell: any): boolean => cell !== null));
 
-        const { level, lines, score } = this.state;
+        const { startLevel } = this.props;
+        const { lines, score } = this.state;
 
         const removedLines = FIELD_HEIGHT - fieldLines.length;
         const updatedField = [ ...emptyField, ...fieldLines ].reverse().slice(0, FIELD_HEIGHT).reverse();
         const updatedLines = lines + removedLines;
-        const updatedScore = score + this.calculateScore(level, removedLines);
+        const updatedLevel = this.getCurrentLevel(startLevel, updatedLines);
+        const updatedScore = score + this.calculateScore(updatedLevel, removedLines);
 
         return {
             field: updatedField,
             lines: updatedLines,
+            level: updatedLevel,
             score: updatedScore,
         };
     }
@@ -173,7 +176,22 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         }
 
         const baseScore: number =  SCORES[lines - 1];
-        return level * baseScore + baseScore;
+        return baseScore * (level + 1);
+    }
+
+    private getCurrentLevel(startLevel: number, lines: number): number {
+
+        const a: number = startLevel * 10 + 10;
+        const b: number = Math.max(100, startLevel * 10 - 50);
+        const increasingNumber: number = Math.min(a, b);
+
+        const diference: number = lines - increasingNumber;
+        if (diference < 0) {
+
+            return startLevel;
+        }
+
+        return Math.floor(diference / 10) + 1;
     }
 
     private getActiveTetrominoShape(): TetrominoShape {
@@ -597,7 +615,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
     public render(): React.ReactNode {
 
-        const { level, lines, nextTetromino, score } = this.state;
+        const { level, lines, score } = this.state;
 
         return (
             <section className='tetris' ref={this.tetrisElement}>
