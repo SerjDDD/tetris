@@ -1,0 +1,43 @@
+table.tetris-field {
+    width: 100%;
+    height: 100%;
+}
+
+table.tetris-field > tbody > tr.tetris-field-line {
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell {
+    outline: 1px solid #000000;
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-i {
+    background-color: #00ffff;
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-j {
+    background-color: #0000ff;
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-l {
+    background-color: #ffa500;
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-o {
+    background-color: #ffff00
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-s {
+    background-color: #00ff00
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-t {
+    background-color: #aa00ff
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-z {
+    background-color: #ff0000
+}
+
+table.tetris-field > tbody > tr.tetris-field-line > td.tetris-field-cell.cell-null {
+    background-color: #000000;
+}

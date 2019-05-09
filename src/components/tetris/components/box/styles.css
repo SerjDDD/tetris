@@ -1,0 +1,12 @@
+section.tetris-box {
+    position: relative;
+    background-color: #000000;
+    color: #ffffff;
+
+    margin: 10px;
+    border: 6px solid #ffffff;
+    border-radius: 10px;
+    box-shadow:
+        0 0 0 3px #000000,
+        0 0 0 6px #ffffff;
+}

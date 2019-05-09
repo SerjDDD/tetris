@@ -1,0 +1,29 @@
+section.tetris {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 50px;
+
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: stretch;
+}
+
+section.tetris.p2 {
+    flex-direction: row-reverse;
+}
+
+section.tetris > section.tetris-main-section {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+}
+
+section.tetris > aside {
+    display: flex;
+    flex-flow: column nowrap;
+    flex-basis: 30%;
+    align-items: stretch;
+}
