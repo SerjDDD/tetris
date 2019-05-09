@@ -1,8 +1,5 @@
 export const FIELD_HEIGHT: number = 20;
 export const FIELD_WIDTH: number = 10;
-export const DEFAULT_BLOCK_SIZE = 40;
-
-export const GAME_SPEED: number = 500; // TODO: adjust!
 
 export const SCORE_1LINE: number = 40;
 export const SCORE_2LINES: number = 100;

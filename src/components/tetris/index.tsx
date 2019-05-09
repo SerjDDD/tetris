@@ -1,7 +1,7 @@
 import * as React from 'react';
 import TetrisField from './components/field';
 import TetrisWins from './components/wins';
-import { Tetrominos, FIELD_HEIGHT, FIELD_WIDTH, DEFAULT_BLOCK_SIZE, GAME_SPEED, TetrominoShape, NULL_SHAPE, TETROMINOS, TETROMINOS_COUNT, Keys, TETROMINOS_SHAPE_SIZE, SCORES } from '../../constants';
+import { Tetrominos, FIELD_HEIGHT, FIELD_WIDTH, TetrominoShape, NULL_SHAPE, TETROMINOS, TETROMINOS_COUNT, Keys, TETROMINOS_SHAPE_SIZE, SCORES } from '../../constants';
 import TetrisScore from './components/score';
 import TetrisLines from './components/lines';
 import TetrisLevel from './components/level';
@@ -28,7 +28,6 @@ interface ActiveTetromino {
 }
 
 interface TetrisState {
-    blockSize: number;
     field: TetrominoShape;
     level: number;
     lines: number;
@@ -41,13 +40,12 @@ interface TetrisState {
 export default class Tetris extends React.PureComponent<TetrisProps, TetrisState> {
 
     private readonly tetrisElement: React.RefObject<HTMLElement>;
-    private timer: NodeJS.Timeout | null = null;
+    private framesCount: number = 0;
 
     constructor(props: Readonly<TetrisProps>) {
 
         super(props);
 
-        this.updateDimensions = this.updateDimensions.bind(this);
         this.generateField = this.generateField.bind(this);
         this.getFieldWithActiveTetromino = this.getFieldWithActiveTetromino.bind(this);
         this.removeLines = this.removeLines.bind(this);
@@ -68,14 +66,17 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         this.shiftTetromino = this.shiftTetromino.bind(this);
         this.hasOverlaps = this.hasOverlaps.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
+        this.getFramesPerLevel = this.getFramesPerLevel.bind(this);
+        this.processFrame = this.processFrame.bind(this);
         this.play = this.play.bind(this);
         this.stop = this.stop.bind(this);
+        this.pause = this.pause.bind(this);
         this.adjustFieldSize = this.adjustFieldSize.bind(this);
+        this.adjustNextTetrominoSize = this.adjustNextTetrominoSize.bind(this);
 
         this.tetrisElement = React.createRef<HTMLElement>();
 
         this.state = {
-            blockSize: DEFAULT_BLOCK_SIZE,
             field: this.generateField(),
             level: props.startLevel,
             lines: 0,
@@ -84,23 +85,6 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
             score: 0,
             tetromino: null,
         };
-    }
-
-    private updateDimensions(): void {
-
-        const tetrisElement: HTMLElement | null = this.tetrisElement.current;
-        if (tetrisElement === null) {
-            return;
-        }
-
-        const style: CSSStyleDeclaration = window.getComputedStyle(tetrisElement, null);
-        const computedHeight: string = style.getPropertyValue('height');
-
-        this.setState(
-            (prevState: Readonly<TetrisState>, props: Readonly<TetrisProps>): Pick<TetrisState, 'blockSize'> => ({
-                blockSize: Math.floor(parseInt(computedHeight) / props.fieldHeight),
-            }),
-        );
     }
 
     private generateField(): TetrominoShape {
@@ -191,7 +175,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
             return startLevel;
         }
 
-        return Math.floor(diference / 10) + 1;
+        return startLevel + Math.floor(diference / 10) + 1;
     }
 
     private getActiveTetrominoShape(): TetrominoShape {
@@ -229,7 +213,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
             type,
             state: 0,
             x: 3,
-            y: -1,
+            y: 0,
         };
     }
 
@@ -493,7 +477,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
         const { paused } = this.state;
 
-        if (paused) {
+        if (paused && event.keyCode !== Keys.ENTER) {
             return;
         }
 
@@ -508,6 +492,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
                 break;
 
             case Keys.UP:
+                this.rotateRight();
                 break;
 
             case Keys.DOWN:
@@ -526,10 +511,50 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
                 break;
 
             case Keys.ENTER:
+                this.pause();
                 break;
 
             default:
                 break;
+        }
+    }
+
+    private getFramesPerLevel(level: number): number {
+
+        if (level === 0) return 48;
+        if (level === 1) return 43;
+        if (level === 2) return 38;
+        if (level === 3) return 33;
+        if (level === 4) return 28;
+        if (level === 5) return 23;
+        if (level === 6) return 18;
+        if (level === 7) return 13;
+        if (level === 8) return 8;
+        if (level === 9) return 6;
+        if (level >= 10 && level <= 12) return 5;
+        if (level >= 13 && level <= 15) return 4;
+        if (level >= 16 && level <= 18) return 3;
+        if (level >= 19 && level <= 28) return 2;
+        if (level >= 29) return 1;
+
+        return 60;
+    }
+
+    private processFrame(): void {
+
+        const { level, paused } = this.state;
+
+        this.framesCount += 1;
+        const framesLimit: number = this.getFramesPerLevel(level);
+
+        if (this.framesCount >= framesLimit) {
+
+            this.framesCount = 0;
+            this.moveDown();
+            this.play();
+        } else if (paused === false) {
+
+            requestAnimationFrame(this.processFrame);
         }
     }
 
@@ -549,33 +574,43 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         if (tetromino === null) {
 
             this.setState(
-                (prevState: Readonly<TetrisState>, props: Readonly<TetrisProps>): Pick<TetrisState, 'tetromino' & 'nextTetromino'> => ({
-                    tetromino: this.createTetromino(
+                (prevState: Readonly<TetrisState>, props: Readonly<TetrisProps>): Pick<TetrisState, 'nextTetromino' & 'paused' & 'tetromino'> => {
+
+                    const newTetromino: ActiveTetromino = this.createTetromino(
                         prevState.nextTetromino === null
                             ? this.getRandomTetromino()
                             : prevState.nextTetromino,
-                    ),
-                    nextTetromino: this.getRandomTetromino(),
-                }),
+                    );
+
+                    return {
+                        nextTetromino: this.getRandomTetromino(),
+                        paused: this.hasOverlaps(newTetromino),
+                        tetromino: newTetromino,
+                    };
+                },
             );
         }
 
-        this.moveDown();
-
-        this.timer = setTimeout(this.play, GAME_SPEED);
+        requestAnimationFrame(this.processFrame);
     }
 
     private stop(): void {
 
-        if (this.timer !== null) {
+        this.setState(
+            (prevState: Readonly<TetrisState>, props: Readonly<TetrisProps>): Pick<TetrisState, 'paused'> => ({
+                paused: true,
+            }),
+        );
+    }
 
-            clearTimeout(this.timer);
+    private pause(): void {
 
-            this.setState(
-                (prevState: Readonly<TetrisState>, props: Readonly<TetrisProps>): Pick<TetrisState, 'paused'> => ({
-                    paused: true,
-                }),
-            );
+        const { paused } = this.state;
+
+        if (paused) {
+            this.play();
+        } else {
+            this.stop();
         }
     }
 
@@ -597,19 +632,13 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
     public componentDidMount(): void {
 
-        this.updateDimensions();
-        window.addEventListener('resize', this.updateDimensions);
         window.addEventListener('keydown', this.keyPressed);
-
-        // TODO: should be in start button click handler
-        this.play();
     }
 
     public componentWillUnmount(): void {
 
         this.stop();
 
-        window.removeEventListener('resize', this.updateDimensions);
         window.removeEventListener('keydown', this.keyPressed);
     }
 
