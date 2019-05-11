@@ -5,4 +5,13 @@ main.app {
   right: 0;
   bottom: 0;
   background-color: #000000;
+  font-family: 'tetris';
+}
+
+@font-face {
+  font-family: 'tetris';
+  font-weight: normal;
+  font-style: normal;
+  src: url('./fonts/tetris-webfont.woff2') format('woff2'),
+       url('./fonts/tetris-webfont.woff') format('woff');
 }

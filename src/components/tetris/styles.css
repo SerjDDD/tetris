@@ -27,3 +27,7 @@ section.tetris > aside {
     flex-basis: 30%;
     align-items: stretch;
 }
+
+section.tetris > aside > section.tetris-box {
+    padding: 10px;
+}
