@@ -30,7 +30,9 @@ interface ActiveTetromino {
 }
 
 interface TetrisState {
+    burn: number;
     field: TetrominoShape;
+    iago: number;
     level: number;
     lines: number;
     nextTetromino: Tetrominos | null;
@@ -80,7 +82,9 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         this.tetrisElement = React.createRef<HTMLElement>();
 
         this.state = {
+            burn: 0,
             field: this.generateField(),
+            iago: 0,
             level: props.startLevel,
             lines: 0,
             nextTetromino: null,
@@ -134,13 +138,13 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         );
     }
 
-    private removeLines(field: TetrominoShape): { field: TetrominoShape, lines: number, level: number, tetrisLines: number, score: number } {
+    private removeLines(field: TetrominoShape): { burn: number, field: TetrominoShape, lines: number, level: number, tetrisLines: number, score: number } {
 
         const emptyField: TetrominoShape = this.generateField();
         const fieldLines: TetrominoShape = field.filter((line: any[]): boolean => !line.every((cell: any): boolean => cell !== null));
 
         const { startLevel } = this.props;
-        const { lines, tetrisLines, score } = this.state;
+        const { burn, lines, tetrisLines, score } = this.state;
 
         const removedLines = FIELD_HEIGHT - fieldLines.length;
         const updatedField = [ ...emptyField, ...fieldLines ].reverse().slice(0, FIELD_HEIGHT).reverse();
@@ -150,6 +154,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         const updatedScore = score + this.calculateScore(updatedLevel, removedLines);
 
         return {
+            burn: removedLines ? removedLines === 4 ? 0 : burn + removedLines : burn,
             field: updatedField,
             lines: updatedLines,
             level: updatedLevel,
@@ -589,6 +594,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
                     );
 
                     return {
+                        iago: newTetromino.type === Tetrominos.I ? 0 : prevState.iago + 1,
                         nextTetromino: this.getRandomTetromino(),
                         paused: this.hasOverlaps(newTetromino),
                         tetromino: newTetromino,
@@ -650,7 +656,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
     public render(): React.ReactNode {
 
-        const { level, lines, tetrisLines, score } = this.state;
+        const { burn, iago, level, lines, tetrisLines, score } = this.state;
 
         const trate: number = lines ? Math.round((tetrisLines / lines) * 100) : lines;
 
@@ -669,7 +675,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
                     <TetrisNext tetromino={this.getNextTetrominoShape()} />
                     <TetrisLevel level={level} />
                     <TetrisLines lines={lines} />
-                    <TetrisRate rate={trate} />
+                    <TetrisRate burn={burn} iago={iago} rate={trate} />
                 </aside>
             </section>
         );

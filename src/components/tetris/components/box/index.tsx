@@ -3,6 +3,7 @@ import './styles.css';
 
 export interface TetrisBoxProps {
     adjustSize?: (height: number, width: number) => TetrisBoxState;
+    color?: string;
     flex?: boolean;
 }
 
@@ -62,10 +63,12 @@ export default class TetrisBox extends React.PureComponent<TetrisBoxProps, Tetri
 
     public render(): React.ReactElement<HTMLTableSectionElement> {
 
-        const { flex } = this.props;
+        const { color, flex } = this.props;
         const { height, width } = this.state;
 
         const style = {
+            color,
+            borderColor: color,
             flex: flex === true ? 1 : 0,
             height: height || undefined,
             width: width || undefined,
