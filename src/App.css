@@ -6,6 +6,7 @@ main.app {
   bottom: 0;
   background-color: #000000;
   font-family: 'tetris';
+  text-align: center;
 }
 
 @font-face {

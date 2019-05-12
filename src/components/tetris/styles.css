@@ -24,10 +24,10 @@ section.tetris > section.tetris-main-section {
 section.tetris > aside {
     display: flex;
     flex-flow: column nowrap;
-    flex-basis: 30%;
     align-items: stretch;
 }
 
 section.tetris > aside > section.tetris-box {
-    padding: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
 }

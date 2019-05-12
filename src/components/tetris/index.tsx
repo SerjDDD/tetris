@@ -7,6 +7,8 @@ import TetrisLines from './components/lines';
 import TetrisLevel from './components/level';
 import './styles.css';
 import TetrisBox from './components/box';
+import TetrisNext from './components/next';
+import TetrisRate from './components/rate';
 
 export enum TetrisPanelPosition {
     LEFT,
@@ -34,6 +36,7 @@ interface TetrisState {
     nextTetromino: Tetrominos | null;
     paused: boolean;
     score: number;
+    tetrisLines: number;
     tetromino: ActiveTetromino | null;
 };
 
@@ -83,6 +86,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
             nextTetromino: null,
             paused: true,
             score: 0,
+            tetrisLines: 0,
             tetromino: null,
         };
     }
@@ -130,17 +134,18 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
         );
     }
 
-    private removeLines(field: TetrominoShape): { field: TetrominoShape, lines: number, level: number, score: number } {
+    private removeLines(field: TetrominoShape): { field: TetrominoShape, lines: number, level: number, tetrisLines: number, score: number } {
 
         const emptyField: TetrominoShape = this.generateField();
         const fieldLines: TetrominoShape = field.filter((line: any[]): boolean => !line.every((cell: any): boolean => cell !== null));
 
         const { startLevel } = this.props;
-        const { lines, score } = this.state;
+        const { lines, tetrisLines, score } = this.state;
 
         const removedLines = FIELD_HEIGHT - fieldLines.length;
         const updatedField = [ ...emptyField, ...fieldLines ].reverse().slice(0, FIELD_HEIGHT).reverse();
         const updatedLines = lines + removedLines;
+        const updatedTetrisLines = removedLines === 4 ? tetrisLines + removedLines : tetrisLines;
         const updatedLevel = this.getCurrentLevel(startLevel, updatedLines);
         const updatedScore = score + this.calculateScore(updatedLevel, removedLines);
 
@@ -148,6 +153,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
             field: updatedField,
             lines: updatedLines,
             level: updatedLevel,
+            tetrisLines: updatedTetrisLines,
             score: updatedScore,
         };
     }
@@ -477,7 +483,7 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
         const { paused } = this.state;
 
-        if (paused && event.keyCode !== Keys.ENTER) {
+        if (paused && event.keyCode !== Keys.ENTER && event.keyCode !== Keys.SELECT) {
             return;
         }
 
@@ -644,7 +650,9 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
 
     public render(): React.ReactNode {
 
-        const { level, lines, score } = this.state;
+        const { level, lines, tetrisLines, score } = this.state;
+
+        const trate: number = lines ? Math.round((tetrisLines / lines) * 100) : lines;
 
         return (
             <section className='tetris' ref={this.tetrisElement}>
@@ -657,18 +665,11 @@ export default class Tetris extends React.PureComponent<TetrisProps, TetrisState
                     </TetrisBox>
                 </section>
                 <aside>
-                    <TetrisBox>
-                        <TetrisScore score={score} />
-                    </TetrisBox>
-                    <TetrisBox>
-                        <TetrisLines lines={lines} />
-                    </TetrisBox>
-                    <TetrisBox adjustSize={this.adjustNextTetrominoSize}>
-                        <TetrisField field={this.getNextTetrominoShape()} />
-                    </TetrisBox>
-                    <TetrisBox>
-                        <TetrisLevel level={level} />
-                    </TetrisBox>
+                    <TetrisScore score={score} />
+                    <TetrisNext tetromino={this.getNextTetrominoShape()} />
+                    <TetrisLevel level={level} />
+                    <TetrisLines lines={lines} />
+                    <TetrisRate rate={trate} />
                 </aside>
             </section>
         );
